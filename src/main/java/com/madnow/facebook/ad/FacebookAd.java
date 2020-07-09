@@ -74,6 +74,18 @@ public class FacebookAd {
 
     }
 
+    public boolean loadedAd(final int type){
+        if(type == AppMacros.AT_RewardVideo){
+            if(mRewardedVideo!=null){
+                return mRewardedVideo.canPlayVideo();
+            }
+        }
+        else  if(type == AppMacros.AT_FullScreenVideo){
+
+        }
+        return false;
+    }
+
     /**
      * 显示广告
      * @param type
