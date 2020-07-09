@@ -1,113 +1,135 @@
 package com.madnow.facebook.ad;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
-import android.os.Handler;
-import android.widget.Toast;
+import android.view.Gravity;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.widget.FrameLayout;
+import android.widget.LinearLayout;
 
 import com.facebook.ads.Ad;
 import com.facebook.ads.AdError;
-import com.facebook.ads.InterstitialAd;
-import com.facebook.ads.InterstitialAdListener;
-import com.wogame.cinterface.AdCallBack;
+import com.facebook.ads.AdListener;
+import com.facebook.ads.AdSize;
+import com.facebook.ads.AdView;
+import com.madnow.facebook.R;
 import com.wogame.common.AppMacros;
-import com.wogame.common.Common;
-import com.wogame.util.DeviceUtil;
+import com.wogame.util.GMDebug;
 
-public class AdInterstitial {
-    private InterstitialAd interstitialAd;
+public class AdBanner {
     private Activity mActivity;
-    private int mInterstitialPlaceCount = 0;
-    private String mVideoPlaceId = "";
-    public boolean mIsInterstitial = false;
-    private String mInterstitialPlaceId = "";
+    private AdView mBottomAdView;
+    private AdView mTopAdView;
+    View mViewRoot;
 
+    private LinearLayout mBottomContainer;
+    private LinearLayout mTopContainer;
 
-    public AdInterstitial(Activity activity,final String interstitialId){
+    public AdBanner(Activity activity){
         mActivity = activity;
-        initInterstitialAd(interstitialId);
+
+        FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.WRAP_CONTENT);
+        params.gravity = Gravity.TOP | Gravity.CENTER_HORIZONTAL;
+        @SuppressLint("WrongViewCast") LinearLayout fragment_bannerad = (LinearLayout) mActivity.findViewById(R.id.banner_container);
+        LayoutInflater inflater = LayoutInflater.from(mActivity);
+        mViewRoot = inflater.inflate(R.layout.banner_ad, fragment_bannerad, false);
+        mActivity.addContentView(mViewRoot, params);
+
     }
 
-    //插屏广告
-    private void initInterstitialAd(final String interstitialId){
-        // Instantiate an InterstitialAd object
-        interstitialAd = new InterstitialAd(mActivity, interstitialId);
-        loadInterstitialAd();
+    //
+    public void loadBottomAd(final String bannerId){
+        mBottomAdView = new AdView(mActivity, "IMG_16_9_APP_INSTALL#"+bannerId, AdSize.BANNER_HEIGHT_50);
+        mBottomContainer= (LinearLayout) mViewRoot.findViewById(R.id.banner_container);
+        // Add the ad view to your activity layout
+        mBottomContainer.removeAllViews();
+        mBottomContainer.addView(mBottomAdView);
 
-        // Set listeners for the Interstitial Ad
-        interstitialAd.setAdListener(new InterstitialAdListener() {
-            @Override
-            public void onInterstitialDisplayed(Ad ad) {
-                loadInterstitialAd();
-//                AdConfig.onAdShow(AppMacros.AT_Interstitial);
-//                if(_adCallback!=null) _adCallback.onAdShow(AdConfig.TYPE_FAN, AppMacros.AT_Interstitial);
-//                appActivity.runOnGLThread(new Runnable() {
-//                    @Override
-//                    public void run() {
-//                        PushJniService.onVideoAdReward(AppMacros.CALL_SUCCESS, AppMacros.AT_Interstitial,interstitialPlaceId);
-//                    }
-//                });
-            }
-            @Override
-            public void onInterstitialDismissed(Ad ad) {
-//                AdManager.getInstance().isInterstitial = false;
-//                isInterstitial = false;
-//                appActivity.runOnGLThread(new Runnable() {
-//                    @Override
-//                    public void run() {
-//                        PushJniService.onVideoAdReward(AppMacros.CALL_CANCEL,AppMacros.AT_Interstitial,interstitialPlaceId);
-//                    }
-//                });
-            }
+        mBottomAdView.setAdListener(new AdListener() {
             @Override
             public void onError(Ad ad, AdError adError) {
-                if(ad == interstitialAd) {
-                    if(mInterstitialPlaceCount <= 6){
-                        if (Common.getInstance().isNetworkConnected()) {
-                            //delay to load again
-                            new Handler().postDelayed(new Runnable() {
-                                @Override
-                                public void run() {
-                                    loadInterstitialAd();
-                                }
-                            }, 35000);
-                        }
-                    }
-                }
+                GMDebug.LogD("Error: " + adError.getErrorMessage());
             }
+
             @Override
             public void onAdLoaded(Ad ad) {
+
             }
+
             @Override
             public void onAdClicked(Ad ad) {
-//                AdConfig.onAdClick(appActivity, AppMacros.AT_Interstitial, interstitialPlaceId);
-               // if(_adCallback!=null) _adCallback.onAdClick(appActivity,AdConfig.TYPE_FAN,AppMacros.AT_Interstitial, interstitialPlaceId);
+
             }
+
             @Override
             public void onLoggingImpression(Ad ad) {
-               // Toast.makeText(appActivity, "Impression logged!", Toast.LENGTH_LONG).show();
+
             }
         });
 
+        mBottomAdView.loadAd();
     }
 
-    private void  loadInterstitialAd(){
-        if(interstitialAd != null){
-            interstitialAd.loadAd();
-            mInterstitialPlaceCount++;
+    public void loadTopAd(final String bannerId){
+        mTopAdView = new AdView(mActivity, "IMG_16_9_APP_INSTALL#"+bannerId, AdSize.BANNER_HEIGHT_50);
+        mTopContainer = (LinearLayout) mViewRoot.findViewById(R.id.banner_top_container);
+        // Add the ad view to your activity layout
+        mTopContainer.removeAllViews();
+        mTopContainer.addView(mTopAdView);
+
+        mTopAdView.setAdListener(new AdListener() {
+            @Override
+            public void onError(Ad ad, AdError adError) {
+                GMDebug.LogD("Error: " + adError.getErrorMessage());
+            }
+
+            @Override
+            public void onAdLoaded(Ad ad) {
+
+            }
+
+            @Override
+            public void onAdClicked(Ad ad) {
+
+            }
+
+            @Override
+            public void onLoggingImpression(Ad ad) {
+
+            }
+        });
+
+        mTopAdView.loadAd();
+    }
+
+    public void loadAd(int type){
+        if(type == AppMacros.AT_Banner_Top){
+            mTopContainer.removeAllViews();
+            mTopContainer.addView(mTopAdView);
+        }
+        else if(type == AppMacros.AT_Banner_Bottom) {
+            mBottomContainer.removeAllViews();
+            mBottomContainer.addView(mBottomAdView);
         }
     }
 
-
-    public void playInterstitialAd(String placeId) {
-        if (interstitialAd != null && interstitialAd.isAdLoaded()){
-            mIsInterstitial = true;
-            this.mInterstitialPlaceId = placeId;
-            interstitialAd.show();
+    public void hideBanner(int type){
+        if(type == AppMacros.AT_Banner_Top){
+            mTopContainer.removeAllViews();
+        }
+        else if(type == AppMacros.AT_Banner_Bottom) {
+            mBottomContainer.removeAllViews();
         }
     }
-
 
     public void onDestroy() {
+        if (mBottomAdView != null) {
+            mBottomAdView.destroy();
+        }
 
+        if (mTopAdView != null) {
+            mTopAdView.destroy();
+        }
     }
 }
